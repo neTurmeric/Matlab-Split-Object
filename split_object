@@ -1,0 +1,48 @@
+%Sumber: https://pemrogramanmatlab.com/2016/07/07/cara-melakukan-cropping-citra-secara-otomatis/
+clc; clear; close all; warning off all;
+
+%Membaca Citra Asli
+originalImage = imread('UTS-abgi.png');
+figure, imshow(originalImage);
+
+%Melakukan Tresholding
+bw = im2bw(originalImage,.9);
+figure, imshow(bw);
+
+%Object diubah menjadi putih, background hitam
+bw = imcomplement(bw);
+figure, imshow(bw);
+
+%Melakukan Morfologi agar warna putih pada citra biner mengisi lubang-lubang pada objek
+bw = imfill(bw,'holes');
+figure, imshow(bw);
+
+%Cropping
+blobMeasurements = regionprops(bw, 'all');
+numberOfBlobs = size(blobMeasurements, 1);
+ 
+figure,
+for k = 1 : numberOfBlobs           % Loop through all blobs.
+    % Find the bounding box of each blob.
+    thisBlobsBoundingBox = blobMeasurements(k).BoundingBox;  % Get list of pixels in current blob.
+ 
+    % Extract out this coin into it's own image.
+    subImage = imcrop(originalImage, thisBlobsBoundingBox);
+     
+    % Display the image.
+    subplot(3, 4, k);
+    imshow(subImage);
+    caption = sprintf('Object Num.%d',k);
+    title(caption);
+end
+
+%Tabel Perhitungan
+% Print header line in the command window.
+fprintf(1,'|Blob Number|    Area    |  Perimeter  |      Centroid      |\n');
+% Loop over all blobs printing their measurements to the command window.
+for k = 1 : numberOfBlobs           % Loop through all blobs.
+    blobArea = blobMeasurements(k).Area;                % Get area.
+    blobPerimeter = blobMeasurements(k).Perimeter;        % Get perimeter.
+    blobCentroid = blobMeasurements(k).Centroid;        % Get centroid one at a time
+    fprintf(1,'| %9d | %10.1f | %11.1f | %8.1f  %8.1f |\n', k, blobArea, blobPerimeter, blobCentroid);
+end
